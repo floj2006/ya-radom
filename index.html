@@ -1,108 +1,18 @@
 <!doctype html>
-<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#080812"><title>YA RADOM // AMV 2017</title>
-<style>
-*{box-sizing:border-box}html,body{height:100%;margin:0;background:#070711;color:white;overflow:hidden;font-family:Impact,'Arial Narrow',system-ui,sans-serif}button,input{font:inherit}button{cursor:pointer}.screen{position:fixed;inset:0;overflow:hidden;isolation:isolate;background:#070711}.camera{position:absolute;inset:-10%;transform-origin:50% 50%;will-change:transform}.scene{position:absolute;inset:0;overflow:hidden;opacity:0;will-change:opacity,transform;background:#12122d}.scene.active{opacity:1}.sky{position:absolute;inset:0;background:radial-gradient(ellipse at 75% 25%,#ffc3ce 0%,#f27d9b 10%,#753d7d 38%,#141635 78%)}.scene:nth-child(2) .sky{background:radial-gradient(ellipse at 30% 30%,#9cdbf2,#5266a2 26%,#1b234b 60%,#0b0b1f)}.scene:nth-child(3) .sky{background:radial-gradient(ellipse at 70% 45%,#ff8da8,#963d74 27%,#281736 60%,#090b18)}.scene:nth-child(4) .sky{background:radial-gradient(ellipse at 40% 20%,#b8b9e8,#6067b2 24%,#1c214b 56%,#090a1b)}.moon{position:absolute;top:17%;right:18%;width:25vmin;height:25vmin;border-radius:50%;background:#ffe1e7;box-shadow:0 0 45px #ffa9d9,0 0 150px #ff9fbd99;opacity:.8}.scene:nth-child(even) .moon{right:auto;left:20%;background:#bdeaff;box-shadow:0 0 85px #73caff}.buildings{position:absolute;inset:40% 0 0;background:linear-gradient(0deg,#070914 0 18%,transparent 19%),repeating-linear-gradient(90deg,#0b0d22 0 7%,#17152b 7% 10%,#0c1026 10% 15%);clip-path:polygon(0 40%,6% 40%,6% 25%,13% 25%,13% 48%,21% 48%,21% 15%,30% 15%,30% 37%,39% 37%,39% 5%,48% 5%,48% 35%,57% 35%,57% 20%,67% 20%,67% 43%,75% 43%,75% 12%,84% 12%,84% 32%,92% 32%,92% 20%,100% 20%,100% 100%,0 100%)}.buildings:after{content:"";position:absolute;inset:15% 0;background:repeating-linear-gradient(90deg,transparent 0 21px,#f4a5c3 22px 24px,transparent 25px 37px),repeating-linear-gradient(0deg,transparent 0 18px,#f4a5c3 19px 22px,transparent 23px 36px);opacity:.19;mix-blend-mode:screen}.silhouette{position:absolute;bottom:0;left:51%;width:25vmin;height:65vmin;background:linear-gradient(95deg,#090a18,#222039 50%,#080a18);clip-path:polygon(36% 0,59% 0,73% 11%,67% 23%,75% 28%,91% 42%,100% 100%,0 100%,8% 42%,29% 29%,29% 21%,25% 10%);filter:drop-shadow(0 0 30px #ee9ac066);opacity:.9}.scene:nth-child(even) .silhouette{left:22%;transform:scaleX(-1)}.rain{position:absolute;inset:-50%;background:repeating-linear-gradient(103deg,transparent 0 26px,#b9d8ff33 27px 28px,transparent 29px 58px);transform:rotate(8deg);opacity:.55}.scene:nth-child(3) .rain{opacity:.1}.grain{position:absolute;inset:0;pointer-events:none;z-index:8;background:repeating-linear-gradient(0deg,transparent 0 2px,#0005 3px 4px);opacity:.55}.bars{position:absolute;inset:0;z-index:6;pointer-events:none;border-top:clamp(25px,6vh,65px) solid #05040a;border-bottom:clamp(25px,6vh,65px) solid #05040a}.flash{position:absolute;inset:0;z-index:7;background:#fff;opacity:0;pointer-events:none}.rgb{position:absolute;inset:0;z-index:7;pointer-events:none;opacity:0;background:repeating-linear-gradient(0deg,transparent 0 9px,#4bffff33 10px 13px,transparent 14px 27px)}.text-wrap{position:absolute;inset:12% 5%;display:grid;place-content:center;z-index:5;text-align:center;pointer-events:none}.lyrics{font-size:clamp(37px,10vw,126px);line-height:.96;letter-spacing:-.035em;text-transform:uppercase;max-width:1100px;margin:auto;overflow-wrap:break-word;text-wrap:balance;text-shadow:4px 4px 0 #9d3a83,0 0 45px #ff96c5;will-change:transform,filter,opacity}.lyrics::before,.lyrics::after{content:attr(data-text);position:absolute;inset:0;display:grid;place-content:center;text-align:center;opacity:0;pointer-events:none}.lyrics.glitch::before{color:#ff3c91;opacity:.65;transform:translate(6px,-3px);mix-blend-mode:screen}.lyrics.glitch::after{color:#64eaff;opacity:.55;transform:translate(-6px,3px);mix-blend-mode:screen}.counter{font:11px ui-monospace,monospace;letter-spacing:3px;color:#ffbddd;margin-bottom:20px}.rec{position:absolute;top:calc(8vh + 10px);left:20px;z-index:7;font:10px monospace;letter-spacing:2px;color:#ffd4e6}.hud{position:absolute;bottom:calc(7vh + env(safe-area-inset-bottom));left:18px;right:18px;display:flex;align-items:center;gap:12px;z-index:10;font:12px monospace;transition:opacity .3s}.hud button{background:#ffb8d7;color:#160c19;border:0;padding:11px 15px;border-radius:3px}.hud input{flex:1;min-width:0;accent-color:#ff8ebd}.hud span{min-width:38px}.overlay{position:absolute;inset:0;z-index:20;display:grid;place-content:center;text-align:center;gap:18px;background:#080812ef;padding:24px}.overlay h1{font-size:clamp(62px,16vw,175px);line-height:.8;margin:0;text-shadow:7px 7px #863765}.overlay p{font:12px monospace;letter-spacing:3px;line-height:1.8;color:#eab6d0}.overlay button{background:#ffb8d7;border:0;color:#180a17;padding:18px 28px;font:700 17px monospace}.overlay[hidden]{display:none}.error{font:12px monospace;color:#ff9ea4;min-height:18px}.low .rain,.low .rgb{display:none}.low .grain{opacity:.15}@media(max-width:600px){.lyrics{font-size:clamp(38px,11vw,65px)}.silhouette{height:50vmin;width:27vmin}.rec{font-size:9px}.hud{gap:7px}.hud button{padding:9px 11px}}@media(prefers-reduced-motion:reduce){.rain,.grain{display:none}}
-.lyrics{width:min(1100px,94vw);display:block;perspective:900px;text-shadow:2px 3px 0 #58264f,0 0 25px #ff96c577}.lyrics .word-mask{display:inline-block;overflow:hidden;vertical-align:bottom;padding:.07em .025em;margin:-.07em -.025em}.lyrics .word{display:inline-block;will-change:transform,opacity;transform-origin:50% 70%}.lyrics .space{display:inline;white-space:pre}.lyrics::before,.lyrics::after{display:none!important}.lyrics.glitch{text-shadow:-3px 0 #50d9ff,3px 0 #ff398a,0 0 24px #ff96c5}.lyrics .word.emphasis{color:#ffe6f3;text-shadow:0 0 24px #ff7cb9}@media(max-width:600px){.lyrics{line-height:1.05;letter-spacing:-.025em}.lyrics .word-mask{padding:.04em .015em;margin:-.04em -.015em}}</style></head><body>
-<main class="screen" id="screen">
-<div class="camera" id="camera">
-<div class="scene active"><div class="sky"></div><div class="moon"></div><div class="buildings"></div><div class="silhouette"></div><div class="rain"></div></div>
-<div class="scene"><div class="sky"></div><div class="moon"></div><div class="buildings"></div><div class="silhouette"></div><div class="rain"></div></div>
-<div class="scene"><div class="sky"></div><div class="moon"></div><div class="buildings"></div><div class="silhouette"></div><div class="rain"></div></div>
-<div class="scene"><div class="sky"></div><div class="moon"></div><div class="buildings"></div><div class="silhouette"></div><div class="rain"></div></div>
-</div>
-<div class="text-wrap"><div class="counter" id="counter">MEMORY 01 / 09</div><div class="lyrics" id="lyrics" data-text="ДАЖЕ ЕСЛИ ВЕСЬ МИР ПРОТИВ НАС">ДАЖЕ ЕСЛИ ВЕСЬ МИР ПРОТИВ НАС</div></div>
-<div class="rgb" id="rgb"></div><div class="flash" id="flash"></div><div class="bars"></div><div class="grain"></div><div class="rec">● REC / 2017 / YA RADOM</div>
-<div class="hud" id="hud"><button id="toggle" aria-label="Воспроизведение">▶</button><span id="clock">00:00</span><input type="range" id="seek" aria-label="Перемотка" min="0" max="31.22" step=".01" value="0"><button id="replay" aria-label="Сначала">↺</button></div>
-<div class="overlay" id="overlay"><h1>YA<br>RADOM</h1><p>AN INTERACTIVE AMV EXPERIENCE<br>2017 // LOST MEMORIES</p><button id="start">▶ START EDIT</button><div class="error" id="error"></div></div>
-<audio id="audio" src="./chorus.mp3" preload="metadata" playsinline></audio>
-</main>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-<script>
-'use strict';
-const $=id=>document.getElementById(id);
-const audio=$('audio'),camera=$('camera'),lyrics=$('lyrics'),flash=$('flash'),rgb=$('rgb'),overlay=$('overlay'),seek=$('seek'),toggle=$('toggle'),clock=$('clock'),counter=$('counter'),screen=$('screen');
-const scenes=[...document.querySelectorAll('.scene')];
-const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const low=reduced||!window.gsap||((navigator.hardwareConcurrency||4)<=2);
-if(low)screen.classList.add('low');
-const motion=!reduced&&!!window.gsap;
-const lines=[
-{time:0,text:'ДАЖЕ ЕСЛИ ВЕСЬ МИР ПРОТИВ НАС'},
-{time:3.9,text:'Я БУДУ РЯДОМ'},
-{time:7.8,text:'ТВОИ УЛЫБКИ В ПАМЯТИ'},
-{time:10,text:'ОСКОЛКИ ГЛАЗ'},
-{time:12,text:'ПОСЛЕДСТВИЕ ЯДА'},
-{time:15.6,text:'У ПОДНОЖИЯ ЛЕТА МЫ ЖДЁМ ОТВЕТОВ'},
-{time:19.5,text:'КОТОРЫХ НЕТУ'},
-{time:23.4,text:'ПОТОРОПИЛИСЬ БРОСИВ ВСЁ'},
-{time:27.3,text:'ЗАДУМАЛИСЬ... ЗАБЫЛИСЬ...'}
-];
-// Onset peaks extracted from chorus.mp3 spectral flux (11,025 Hz, 1,024 sample FFT, 256 hop).
-// Stronger impacts get distinct camera presets rather than a constant beat interval.
-const editTimeline=[
-[.98,'horizontal',.4],[1.93,'impact',1],[2.41,'vertical',.55],[2.93,'horizontal',.55],[3.88,'cut',.8],
-[4.62,'vertical',.8],[5.34,'horizontal',.6],[5.83,'impact',1],[6.8,'horizontal',.55],[7.8,'cut',.9],
-[8.78,'vertical',.65],[9.73,'impact',1],[10.24,'horizontal',.5],[10.73,'vertical',.7],[11.7,'horizontal',.5],
-[12.42,'cut',.9],[13.65,'impact',.9],[14.63,'horizontal',.6],[15.6,'impact',1],[16.58,'vertical',.5],
-[17.55,'horizontal',.7],[18.04,'vertical',.75],[18.53,'impact',.9],[19.5,'cut',1],[20.97,'impact',1],
-[21.46,'horizontal',.65],[22.92,'vertical',.7],[23.41,'cut',.9],[24.4,'horizontal',.75],[25.36,'impact',.8],
-[26.35,'vertical',.6],[27.31,'cut',.85],[28.03,'impact',.9],[29.26,'impact',1],[30.26,'horizontal',.55]
-].map(([time,type,power],i)=>({time,type,power,dir:i%2?-1:1}));
-function indexAt(items,t){let lo=0,hi=items.length-1,result=-1;while(lo<=hi){let m=(lo+hi)>>1;if(items[m].time<=t){result=m;lo=m+1}else hi=m-1}return result}
-const CameraController={
-reset(){if(motion)gsap.killTweensOf(camera);camera.style.transform='translate3d(0,0,0) scale(1.06)'},
-hit(e){if(!motion)return;const p=low?.55:1,dir=e.dir,amp=e.power*p;gsap.killTweensOf(camera);
-let keyframes;
-if(e.type==='vertical')keyframes=[{y:-25*amp,x:0,rotation:1.4*dir*amp,scale:1.09,duration:.065},{y:17*amp,rotation:-.7*dir*amp,duration:.075},{y:0,rotation:0,scale:1.06,duration:.21,ease:'power3.out'}];
-else if(e.type==='horizontal')keyframes=[{x:36*dir*amp,rotation:2.2*dir*amp,scale:1.09,duration:.055},{x:-18*dir*amp,rotation:-1.1*dir*amp,duration:.08},{x:0,rotation:0,scale:1.06,duration:.22,ease:'power3.out'}];
-else keyframes=[{x:21*dir*amp,y:-11*amp,rotation:2*dir*amp,scale:1.17,duration:.055},{x:-9*dir*amp,y:6*amp,rotation:-1*dir*amp,scale:1.1,duration:.09},{x:0,y:0,rotation:0,scale:1.06,duration:.24,ease:'expo.out'}];
-gsap.timeline().to(camera,{keyframes,overwrite:true});
-}};
-const EffectsManager={reset(){if(motion)gsap.killTweensOf([flash,rgb]);flash.style.opacity=0;rgb.style.opacity=0},hit(e){if(!motion)return;const v=e.type==='impact'?.4:e.type==='cut'?.55:.12;gsap.fromTo(flash,{opacity:v*e.power},{opacity:0,duration:.18,overwrite:true});gsap.fromTo(rgb,{opacity:.65*e.power,x:e.dir*18},{opacity:0,x:0,duration:.26,overwrite:true})}};
-const TypographyAnimator={
-words:[],timer:null,
-set(i,animate){
-const item=lines[i];counter.textContent='MEMORY '+String(i+1).padStart(2,'0')+' / 09';
-lyrics.classList.remove('glitch');lyrics.dataset.text=item.text;
-if(this.timer){this.timer.kill();this.timer=null}
-if(motion){gsap.killTweensOf([lyrics,...this.words]);gsap.set(lyrics,{clearProps:'all'})}
-const fragment=document.createDocumentFragment();this.words=[];
-item.text.split(/(\\s+)/).forEach((part,k)=>{
-if(/^\\s+$/.test(part)){const s=document.createElement('span');s.className='space';s.textContent=part;fragment.appendChild(s);return}
-const mask=document.createElement('span');mask.className='word-mask';
-const word=document.createElement('span');word.className='word';word.textContent=part;
-if((k===0||part.length>7)&&i%3===1)word.classList.add('emphasis');
-mask.appendChild(word);fragment.appendChild(mask);this.words.push(word)
-});lyrics.replaceChildren(fragment);
-if(!animate||!motion)return;
-const dir=i%2===0?-1:1;
-const preset=i%3;
-const from=preset===0?{y:80,rotationX:-55,opacity:0,scale:.92}:preset===1?{x:dir*75,skewX:dir*-13,opacity:0,scale:1.12}:{y:-65,rotationZ:dir*5,opacity:0,scale:1.18};
-gsap.set(this.words,from);
-this.timer=gsap.timeline().to(this.words,{x:0,y:0,rotationX:0,rotationZ:0,skewX:0,scale:1,opacity:1,duration:.44,stagger:{each:.055,from:i%2?'end':'start'},ease:'expo.out',clearProps:'transform,opacity'});
-},
-hit(e){
-if(!motion||e.power<.82||e.type==='horizontal')return;
-const target=this.words[Math.min(this.words.length-1,Math.floor(this.words.length/2))];
-if(!target)return;
-gsap.fromTo(target,{scale:1.075,y:-4},{scale:1,y:0,duration:.22,ease:'power3.out',overwrite:true});
-if(e.type==='cut'){lyrics.classList.add('glitch');gsap.delayedCall(.11,()=>lyrics.classList.remove('glitch'))}
-}};
-const SceneManager={show(i,animate){const next=i%scenes.length;scenes.forEach((s,j)=>{if(motion)gsap.killTweensOf(s);s.classList.toggle('active',j===next);s.style.opacity=j===next?'1':'0';s.style.transform=''});if(animate&&motion){gsap.fromTo(scenes[next],{opacity:.25,x:(i%2?-1:1)*75,scale:1.1},{opacity:1,x:0,scale:1,duration:.48,ease:'power3.out'})}}};
-const TimelineController={line:-1,event:-1,lastTime:0,
-sync(t,animate){const line=Math.max(0,indexAt(lines,t));const event=indexAt(editTimeline,t);const jumped=Math.abs(t-this.lastTime)>.35||t<this.lastTime-.05;
-if(jumped){CameraController.reset();EffectsManager.reset();this.event=event}
-if(line!==this.line){this.line=line;TypographyAnimator.set(line,animate&&!jumped);SceneManager.show(line,animate&&!jumped)}
-if(event>this.event&&!jumped&&animate){for(let k=this.event+1;k<=event;k++){const e=editTimeline[k];CameraController.hit(e);EffectsManager.hit(e);TypographyAnimator.hit(e)}}this.event=event;this.lastTime=t;
-}};
-const AudioController={async play(){try{await audio.play();overlay.hidden=true;$('error').textContent=''}catch(err){overlay.hidden=false;$('error').textContent='Не удалось запустить музыку. Проверь chorus.mp3.'}},pause(){audio.pause()},replay(){audio.currentTime=0;TimelineController.sync(0,false);this.play()}};
-$('start').onclick=()=>AudioController.play();toggle.onclick=()=>audio.paused?AudioController.play():AudioController.pause();$('replay').onclick=()=>AudioController.replay();
-seek.addEventListener('input',()=>{audio.currentTime=Number(seek.value);TimelineController.sync(audio.currentTime,false)});
-audio.addEventListener('loadedmetadata',()=>{if(Number.isFinite(audio.duration))seek.max=audio.duration});
-audio.addEventListener('error',()=>{$('error').textContent='Аудио недоступно. Убедись, что chorus.mp3 лежит рядом с index.html.'});
-audio.addEventListener('ended',()=>{overlay.hidden=false;$('start').textContent='↺ REPLAY THE MEMORY'});
-audio.addEventListener('play',()=>{overlay.hidden=true});
-audio.addEventListener('pause',()=>{toggle.textContent='▶'});
-function loop(){const t=audio.currentTime||0;if(!audio.paused&&!audio.ended)TimelineController.sync(t,true);seek.value=t;clock.textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(Math.floor(t%60)).padStart(2,'0');toggle.textContent=audio.paused?'▶':'Ⅱ';requestAnimationFrame(loop)}
-TimelineController.sync(0,false);requestAnimationFrame(loop);
-</script></body></html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#090a10">
+<meta name="description" content="Я буду рядом. Маленький фильм о воспоминаниях — включи звук."><title>YA RADOM — a memory in motion</title>
+<link rel="preload" as="image" href="assets/platform.webp"><link rel="stylesheet" href="style.css"><script src="edit.js" defer></script>
+</head>
+<body>
+<main id="screen" class="screen" data-state="intro">
+<div class="picture" aria-hidden="true"><div id="camera" class="camera"><div id="frame" class="frame"></div><div id="echo" class="frame echo"></div></div><div class="grade"></div><canvas id="atmosphere"></canvas><div class="vignette"></div><div id="flash" class="flash"></div><div id="shutter" class="shutter"></div><div class="grain"></div></div>
+<header class="masthead"><a class="brand" href="./" aria-label="YA RADOM — на начало">YR<span> / </span>17</a><span class="edition">A MEMORY IN MOTION</span><button id="effects" class="text-button" aria-pressed="true" aria-label="Эффекты">FX <span id="fxState">ON</span></button></header>
+<section id="intro" class="intro" aria-labelledby="title"><div class="eyebrow"><span class="tiny-line"></span> ДАЖЕ ЕСЛИ ВЕСЬ МИР ПРОТИВ НАС</div><h1 id="title">Я БУДУ<br><span>РЯДОМ.</span></h1><div class="intro-bottom"><button id="start" class="start"><span class="play-icon">▶</span><span>ВКЛЮЧИТЬ ВОСПОМИНАНИЕ<small>31 СЕКУНДА · СО ЗВУКОМ</small></span><span class="start-arrow">↗</span></button><p class="intro-note">некоторые моменты<br>остаются навсегда.</p></div><p id="error" class="error" role="status"></p></section>
+<section id="typeStage" class="type-stage" aria-label="Текст песни"><div id="caption" class="caption"></div><div id="lyrics" class="lyrics"></div><div id="subcaption" class="subcaption"></div></section>
+<div class="film-edge" aria-hidden="true"><span id="chapter">01 / ПРОТИВ МИРА</span><span>DON’T FORGET</span></div>
+<div id="end" class="end" hidden><p>некоторые моменты остаются.</p><button id="endReplay" class="text-button">ПЕРЕЖИТЬ ЕЩЁ РАЗ ↗</button></div>
+<footer class="controls" id="controls"><button id="toggle" class="control-button" aria-label="Воспроизвести">▶</button><output id="clock" class="clock">00:00</output><input id="seek" type="range" min="0" max="31.268571" value="0" step="0.01" aria-label="Перемотка" aria-valuetext="0 секунд"><span id="duration" class="clock total">00:31</span><button id="mute" class="text-button" aria-label="Выключить звук" aria-pressed="false">ЗВУК ON</button><button id="replay" class="control-button" aria-label="Сначала">↺</button><button id="fullscreen" class="control-button fullscreen" aria-label="Полный экран">⛶</button></footer>
+<audio id="audio" src="chorus.mp3" preload="metadata" playsinline></audio><noscript><p class="noscript">Для воспроизведения эдита включи JavaScript.</p></noscript>
+</main></body></html>
