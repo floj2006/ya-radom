@@ -97,8 +97,14 @@ h1 > span { color: transparent; -webkit-text-stroke: 1.5px var(--paper); }
   will-change: transform;
 }
 .lyric-row { display: block; white-space: nowrap; }
-.word { display: inline-block; margin-right: .2em; will-change: transform, opacity; }
+/* .word — маска (overflow: hidden), из-под которой выезжает .word-inner.
+   Внутренние отступы нужны, чтобы маска не срезала наклонные буквы. */
+.word {
+  display: inline-block; overflow: hidden; vertical-align: bottom;
+  padding: .06em .12em .1em; margin-right: -.04em;
+}
 .word:last-child { margin-right: 0; }
+.word-inner { display: inline-block; will-change: transform; }
 .lyric-row.accent { color: var(--pink); }
 .lyric-row.outline { color: transparent; -webkit-text-stroke: 2px var(--paper); }
 .type-stage[data-layout=left] { align-items: flex-start; text-align: left; }

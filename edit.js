@@ -13,22 +13,42 @@ let viewW = 1, viewH = 1;
 
 const clamp = (n, min = 0, max = 1) => Math.min(max, Math.max(min, n));
 const easeOut = n => 1 - Math.pow(1 - clamp(n), 4);
+const easeOutExpo = n => (n = clamp(n), n === 1 ? 1 : 1 - Math.pow(2, -10 * n));
+const easeInOut = n => (n = clamp(n), n < .5 ? 4 * n * n * n : 1 - Math.pow(-2 * n + 2, 3) / 2);
 // Детерминированный «рандом»: одно и то же число для одного и того же n.
 const hash = n => { const s = Math.sin(n * 12.9898) * 43758.5453; return s - Math.floor(s); };
 
-// ===== Ритм =====
-// Темп измерен по треку: 123 BPM, первая доля на 0.025 с.
-const BPM = 123;
-const BEAT = 60 / BPM;
-const OFFSET = 0.025;
 const SONG_END = 31.22;
-const beatTime = b => OFFSET + b * BEAT;
+// Сетка долей трека: 123 BPM, первая доля на 0.025 с. Нужна только для лёгкого пульса на начале такта.
+const BAR = 4 * 60 / 123;
+const OFFSET = 0.025;
 
-// Насколько «жёстко» качает в каждом такте (такт = 4 доли). 1 — спокойнее, 3 — максимум.
-const LEVELS = [2, 2, 2, 3,  1, 2, 2, 3,  2, 2, 2, 3,  2, 2, 1, 3];
+// ===== Текст =====
+// Время каждого слова снято с отделённого вокала (распознавание речи с таймкодами).
+// words — время начала каждого слова по порядку, key — номер строки, где лежит главное слово.
+const LINES = [
+  {rows: ['ДАЖЕ ЕСЛИ', 'ВЕСЬ МИР'], words: [0.45, 1.36, 1.84, 2.08], layout: 'left'},
+  {rows: ['ПРОТИВ', 'НАС.'], words: [2.68, 3.60], accent: 1},
+  {rows: ['Я БУДУ', 'РЯДОМ.'], words: [4.72, 5.16, 5.84], accent: 1},
+  {rows: ['ТВОИ УЛЫБКИ', 'В ПАМЯТИ'], words: [8.30, 9.06, 9.66, 9.78], layout: 'low', outline: 1},
+  {rows: ['ОСКОЛКИ', 'ГЛАЗ'], words: [10.40, 11.32], layout: 'right', accent: 1},
+  {rows: ['ПОСЛЕДСТВИЕ', 'ЯДА'], words: [12.30, 13.60], accent: 1},
+  {rows: ['У ПОДНОЖИЯ', 'ЛЕТА'], words: [16.29, 16.70, 17.60], layout: 'left', accent: 1},
+  {rows: ['МЫ ЖДЁМ', 'ОТВЕТОВ'], words: [18.08, 18.32, 19.02], outline: 1},
+  {rows: ['КОТОРЫХ', 'НЕТУ.'], words: [20.30, 21.36], accent: 1},
+  {rows: ['ПОТОРОПИЛИСЬ,', 'БРОСИВ ВСЁ'], words: [23.80, 26.12, 26.90], accent: 1},
+  {rows: ['ЗАДУМАЛИСЬ…'], words: [28.00], layout: 'low'},
+  {rows: ['ЗАБЫЛИСЬ…'], words: [29.34], accent: 0}
+].map(line => ({...line, time: line.words[0] - .1}));
+
+// Акценты: [время, сила]. На них камера толкается, каналы разъезжаются, иногда вспышка.
+const ACCENTS = [
+  [2.68, .4], [3.60, 1], [5.84, 1], [10.40, .5], [11.32, .9], [13.60, .9],
+  [17.60, .5], [19.02, .4], [21.36, 1], [23.80, .6], [26.12, .5], [26.90, 1], [29.34, .5]
+];
 
 // ===== Кадры =====
-// Картинка + точка, на которой держим фокус (в % от картинки) + приближение.
+// Картинка + точка фокуса (в % от картинки) + приближение.
 const IMAGE_W = 1672, IMAGE_H = 941;
 const FRAMINGS = {
   'p-wide':    ['platform', 60, 50, 1],
@@ -43,7 +63,6 @@ const FRAMINGS = {
   'e-eye':     ['eyes', 39, 22, 2.6],
   'e-tear':    ['eyes', 30, 52, 2.8],
   'e-lips':    ['eyes', 46, 68, 2.4],
-  'e-city':    ['eyes', 82, 42, 2],
   's-wide':    ['summer', 50, 50, 1],
   's-couple':  ['summer', 50, 72, 2.6],
   's-sun':     ['summer', 30, 60, 2.8],
@@ -53,64 +72,44 @@ const FRAMINGS = {
 };
 // Цветовые режимы кадра.
 const LOOKS = {
-  mono: 'grayscale(1) contrast(1.5) brightness(1.05)',
-  red: 'grayscale(1) sepia(1) saturate(7) hue-rotate(-45deg) contrast(1.25)',
-  invert: 'invert(1) hue-rotate(180deg) contrast(1.2)'
+  mono: 'grayscale(1) contrast(1.35) brightness(1.05)',
+  red: 'grayscale(1) sepia(1) saturate(5) hue-rotate(-45deg) contrast(1.15)',
+  dream: 'saturate(1.25) brightness(1.08) contrast(.95)'
 };
 
-// Монтаж: [доля, кадр, теги]. Доля может быть дробной (.5 = между ударами).
-// Теги: zoom/whip — тип входа, flash — вспышка на склейке, flip — зеркало,
-// mono/red/invert — цвет, push — медленный наезд, black — чёрный кадр.
+// Монтаж: [секунда, кадр, теги]. Склейки стоят на словах.
+// Вход: fade (из чёрного), dissolve (растворение), whip (рывок со смазом), flash (белая вспышка), без тега — прямая склейка.
+// Движение: push (наезд), pull (отъезд), left/right (панорама). Цвет: mono, red, dream.
 const SHOTS = [
-  // ДАЖЕ ЕСЛИ ВЕСЬ МИР
-  [0, 'p-wide', 'zoom flash push'], [2, 'p-signal', 'whip'], [3, 'p-rails', 'flip'],
-  // ПРОТИВ НАС
-  [4, 'p-face', 'zoom flash'], [5, 'e-eye', 'mono'], [6, 'p-profile', 'whip'], [7, 'p-lights', 'red'], [7.5, 'p-face', 'invert'],
-  // Я БУДУ РЯДОМ
-  [8, 's-wide', 'zoom flash push'], [10, 's-couple', 'whip'], [11, 's-sun', ''],
-  [12, 's-clouds', 'flip'], [13, 'e-face', 'whip'], [14, 'p-face', 'mono'], [14.5, 's-couple', 'red'], [15, '', 'black'], [15.5, 'e-eye', 'invert'],
-  // ТВОИ УЛЫБКИ В ПАМЯТИ — передышка
-  [16, 'e-wide', 'flash push'], [18, 'e-tear', 'push'],
-  // ОСКОЛКИ ГЛАЗ
-  [20, 'e-eye', 'zoom flash'], [21, 'e-eye', 'flip red'], [22, 'e-city', 'whip'], [23, 'e-lips', ''],
-  // ПОСЛЕДСТВИЕ ЯДА
-  [24, 'p-face', 'mono flash'], [25, 'e-tear', 'mono'], [26, 'p-lights', 'whip'], [27, 'e-face', 'red'],
-  [28, 'p-profile', 'zoom'], [28.5, 'e-eye', 'invert'], [29, 'p-signal', 'red'], [29.5, 's-moon', 'mono'],
-  [30, 'e-lips', 'zoom'], [30.5, '', 'black'], [31, 'p-face', 'invert'], [31.5, '', 'black'],
-  // У ПОДНОЖИЯ ЛЕТА
-  [32, 's-wide', 'zoom flash push'], [34, 's-grass', 'whip'], [35, 's-sun', ''],
-  // МЫ ЖДЁМ ОТВЕТОВ
-  [36, 's-couple', 'zoom flash'], [37, 's-clouds', 'flip'], [38, 'e-face', 'whip'], [39, 's-moon', ''],
-  // КОТОРЫХ НЕТУ
-  [40, 'p-face', 'zoom flash'], [41, 'p-face', 'flip mono'], [42, 'e-eye', ''], [43, 'p-sky', 'whip'],
-  [44, 's-couple', 'mono'], [44.5, 'p-lights', ''], [45, 'e-lips', 'red'], [45.5, 's-sun', 'invert'],
-  [46, 'p-signal', 'zoom'], [46.5, 'e-eye', 'mono'], [47, '', 'black'], [47.5, 'p-face', 'invert'],
-  // ПОТОРОПИЛИСЬ БРОСИВ ВСЁ
-  [48, 'p-wide', 'zoom flash'], [49, 'p-rails', 'whip flip'], [50, 's-couple', ''], [51, 'e-tear', ''],
-  [52, 's-wide', 'flash'], [53, 'e-city', 'flip'], [54, 'p-profile', 'whip'], [55, 's-grass', 'red'],
-  // ЗАДУМАЛИСЬ — вторая передышка
-  [56, 'e-face', 'mono flash push'], [58, 's-moon', 'mono push'],
-  // ЗАБЫЛИСЬ — финальный залп
-  [60, 's-couple', 'zoom flash'], [61, 'e-eye', ''], [61.5, 'p-face', 'red'], [62, 's-wide', 'mono'],
-  [62.5, '', 'black'], [63, 'e-eye', 'invert flash'], [63.5, '', 'black']
-].map(([beat, framing, tags]) => ({time: beatTime(beat), framing: FRAMINGS[framing], tags: tags.split(' ')}));
-
-// ===== Текст =====
-// Время строк — из прошлой версии (на слух не перепроверено). Слова влетают по одному каждые step секунд.
-const LINES = [
-  {time: 0, rows: ['ДАЖЕ ЕСЛИ', 'ВЕСЬ МИР'], layout: 'left'},
-  {time: 1.93, rows: ['ПРОТИВ', 'НАС.'], accent: 1},
-  {time: 3.9, rows: ['Я БУДУ', 'РЯДОМ.'], accent: 1},
-  {time: 7.8, rows: ['ТВОИ УЛЫБКИ', 'В ПАМЯТИ'], layout: 'low', outline: 1, step: BEAT},
-  {time: 10, rows: ['ОСКОЛКИ', 'ГЛАЗ'], layout: 'right', accent: 1},
-  {time: 12, rows: ['ПОСЛЕДСТВИЕ', 'ЯДА'], outline: 0},
-  {time: 15.6, rows: ['У ПОДНОЖИЯ', 'ЛЕТА'], layout: 'left', accent: 1},
-  {time: 17.55, rows: ['МЫ ЖДЁМ', 'ОТВЕТОВ'], outline: 1},
-  {time: 19.5, rows: ['КОТОРЫХ', 'НЕТУ.'], accent: 1},
-  {time: 23.4, rows: ['ПОТОРОПИЛИСЬ', 'БРОСИВ ВСЁ'], accent: 1},
-  {time: 27.3, rows: ['ЗАДУМАЛИСЬ…'], step: BEAT},
-  {time: 29.26, rows: ['ЗАБЫЛИСЬ…'], accent: 0}
-];
+  [0, 'p-wide', 'fade push'],
+  [2.68, 'p-profile', 'left'],             // ПРОТИВ
+  [3.60, 'p-face', 'flash push'],          // НАС
+  [4.72, 's-wide', 'dissolve pull dream'], // Я БУДУ
+  [5.84, 's-couple', 'push dream'],        // РЯДОМ
+  [7.20, 's-sun', 'dissolve right dream'],
+  [8.30, 'e-wide', 'dissolve push'],       // ТВОИ
+  [9.06, 'e-face', 'left'],                // УЛЫБКИ
+  [9.66, 's-clouds', 'dissolve mono push'],// В ПАМЯТИ
+  [10.40, 'e-eye', 'whip push'],           // ОСКОЛКИ
+  [11.32, 'e-eye', 'flash red pull'],      // ГЛАЗ
+  [12.30, 'p-lights', 'mono right'],       // ПОСЛЕДСТВИЕ
+  [13.60, 'e-tear', 'flash red push'],     // ЯДА
+  [14.70, 'e-lips', 'dissolve push'],
+  [15.20, 'p-rails', 'dissolve left'],
+  [16.29, 's-wide', 'flash pull dream'],   // У ПОДНОЖИЯ
+  [17.60, 's-grass', 'right dream'],       // ЛЕТА
+  [18.08, 's-couple', 'push'],             // МЫ ЖДЁМ
+  [19.02, 's-moon', 'dissolve pull'],      // ОТВЕТОВ
+  [20.30, 'p-profile', 'mono push'],       // КОТОРЫХ
+  [21.36, 'p-face', 'flash mono push'],    // НЕТУ
+  [22.40, 'p-sky', 'dissolve right'],
+  [23.80, 'p-wide', 'whip push'],          // ПОТОРОПИЛИСЬ
+  [25.00, 'p-signal', 'left red'],
+  [26.12, 's-grass', 'whip right'],        // БРОСИВ
+  [26.90, 's-wide', 'flash pull'],         // ВСЁ
+  [28.00, 'e-face', 'dissolve mono push'], // ЗАДУМАЛИСЬ
+  [29.34, 's-couple', 'dissolve push dream'] // ЗАБЫЛИСЬ
+].map(([time, framing, tags]) => ({time, framing: FRAMINGS[framing], tags: tags.split(' ')}));
 
 // Индекс последнего элемента, который уже начался к моменту t.
 function at(items, t) {
@@ -146,7 +145,7 @@ const images = {};
   };
   image.src = `assets/${name}.webp`;
 });
-// Камера — канвас размером с экран (+12% запаса под тряску).
+// Камера — канвас размером с экран (+12% запаса под толчки).
 const view = el.camera.getContext('2d');
 
 let lineIndex = -1;
@@ -155,7 +154,6 @@ let words = [];
 function setLine(i) {
   lineIndex = i;
   const line = LINES[i];
-  const step = line.step || BEAT / 2;
   el.stage.dataset.layout = line.layout || 'center';
   el.lyrics.setAttribute('aria-label', line.rows.join(' '));
   words = [];
@@ -164,11 +162,15 @@ function setLine(i) {
     row.className = 'lyric-row' + (line.accent === rowIndex ? ' accent' : '') + (line.outline === rowIndex ? ' outline' : '');
     row.setAttribute('aria-hidden', 'true');
     text.split(/\s+/).forEach(text => {
+      // .word — окно-маска, .word-inner — само слово, которое выезжает из-под маски.
       const word = document.createElement('span');
       word.className = 'word';
-      word.textContent = text;
+      const inner = document.createElement('span');
+      inner.className = 'word-inner';
+      inner.textContent = text;
+      word.append(inner);
       row.append(word);
-      words.push({el: word, time: line.time + words.length * step});
+      words.push({el: word, inner, time: line.words[words.length], key: line.accent === rowIndex});
     });
     return row;
   }));
@@ -192,7 +194,7 @@ function resize() {
   const dpr = Math.min(devicePixelRatio || 1, 1.5);
   canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr);
   if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  // Канвас камеры на 12% больше экрана, чтобы тряска не открывала края.
+  // Канвас камеры на 12% больше экрана, чтобы толчки не открывали края.
   const viewDpr = Math.min(devicePixelRatio || 1, 1.25);
   viewW = el.camera.width = Math.round(width * 1.12 * viewDpr);
   viewH = el.camera.height = Math.round(height * 1.12 * viewDpr);
@@ -202,52 +204,81 @@ function atmosphere(t, summer) {
   if (!ctx) return;
   ctx.clearRect(0, 0, width, height);
   if (!fx || !started) return;
-  ctx.strokeStyle = 'rgba(210,216,243,.25)'; ctx.fillStyle = 'rgba(255,222,208,.6)'; ctx.lineWidth = .8;
-  const count = width < 600 ? 24 : 45;
+  ctx.strokeStyle = 'rgba(210,216,243,.22)'; ctx.fillStyle = 'rgba(255,222,208,.6)'; ctx.lineWidth = .8;
+  const count = width < 600 ? 22 : 40;
   for (let i = 0; i < count; i++) {
     const seed = (i * 137.508) % 997 / 997;
-    const x = (seed * width + t * (summer ? 8 : -32) + width * 100) % width;
-    const y = ((i * 79.71) % height + t * (summer ? -15 : 250) + height * 100) % height;
+    const x = (seed * width + t * (summer ? 8 : -24) + width * 100) % width;
+    const y = ((i * 79.71) % height + t * (summer ? -12 : 180) + height * 100) % height;
     if (summer) { ctx.globalAlpha = .3 + .4 * Math.sin(i + t) ** 2; ctx.fillRect(x, y, 1.5, 1.5); }
-    else { ctx.globalAlpha = 1; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 5, y + 18); ctx.stroke(); }
+    else { ctx.globalAlpha = 1; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 4, y + 16); ctx.stroke(); }
   }
   ctx.globalAlpha = 1;
 }
 
-// Сила удара на доле: уровень такта, на первой доле такта сильнее.
-function beatStrength(b) {
-  if (b < 0 || b > 63) return 0;
-  const level = LEVELS[Math.floor(b / 4)];
-  return (.35 + level * .22) * (b % 4 === 0 ? 1.3 : 1);
+// Какой кусок картинки видно в кадре i в момент t (с учётом движения камеры).
+function shotView(i, t, motion) {
+  const shot = SHOTS[i];
+  const [name, focusX, focusY, baseZoom] = shot.framing;
+  const has = tag => shot.tags.includes(tag);
+  const duration = (SHOTS[i + 1]?.time || SONG_END) - shot.time;
+  const e = motion ? easeInOut((t - shot.time) / duration) : .5;
+
+  // На вертикальном экране режем меньше: картинка и так обрезана по бокам.
+  let zoom = 1 + (baseZoom - 1) * (width < height ? .45 : 1);
+  if (has('push')) zoom *= 1 + .1 * e;
+  else if (has('pull')) zoom *= 1.12 - .1 * e;
+  else zoom *= 1.03 + .03 * e;
+  let x = focusX;
+  if (has('left')) x += 8 * (.5 - e);
+  if (has('right')) x -= 8 * (.5 - e);
+
+  // Точка фокуса по центру, но не вылезаем за края картинки.
+  const pixel = Math.max(viewW / IMAGE_W, viewH / IMAGE_H) * zoom;
+  const w = viewW / pixel, h = viewH / pixel;
+  return {
+    image: images[name],
+    x: clamp(x / 100 * IMAGE_W - w / 2, 0, IMAGE_W - w),
+    y: clamp(focusY / 100 * IMAGE_H - h / 2, 0, IMAGE_H - h),
+    w, h
+  };
 }
 
 // Рисуем кусок картинки на канвас камеры.
-// split — на сколько пикселей разводим красный и голубой каналы, blur — смаз при резком входе.
-function drawShot(image, crop, split, blur, flip) {
-  view.globalCompositeOperation = 'source-over';
-  view.fillStyle = '#000';
-  view.fillRect(0, 0, viewW, viewH);
-  if (!image) return;
-  view.save();
-  if (flip) { view.translate(viewW, 0); view.scale(-1, 1); }
-  const draw = (source, dx) => view.drawImage(source, crop.x, crop.y, crop.w, crop.h, dx, 0, viewW, viewH);
-  if (split < .5) {
-    draw(image.full, 0);
+// split — на сколько пикселей разводим красный и голубой каналы, smear — смаз при рывке.
+function drawShot(v, split, smear, alpha) {
+  if (!v.image) return;
+  const draw = (source, dx) => view.drawImage(source, v.x, v.y, v.w, v.h, dx, 0, viewW, viewH);
+  view.globalAlpha = alpha;
+  if (split < .5 || alpha < 1) {
+    draw(v.image.full, 0);
   } else {
     // Красный канал + голубой канал (lighter = сложение) = обычная картинка, но со сдвигом.
-    draw(image.red, split);
+    draw(v.image.red, split);
     view.globalCompositeOperation = 'lighter';
-    draw(image.cyan, -split);
+    draw(v.image.cyan, -split);
     view.globalCompositeOperation = 'source-over';
   }
-  // Смаз: пара полупрозрачных копий со сдвигом.
-  if (blur > 1) {
-    view.globalAlpha = .35;
-    draw(image.full, blur * 2);
-    draw(image.full, -blur * 2);
-    view.globalAlpha = 1;
+  if (smear > 1) {
+    view.globalAlpha = .3 * alpha;
+    draw(v.image.full, smear);
+    draw(v.image.full, -smear);
   }
-  view.restore();
+  view.globalAlpha = 1;
+}
+
+// Сила акцента в момент t: последний акцент затухает за ~0.4 с. Плюс лёгкий пульс на начале такта.
+function accentAt(t) {
+  let value = 0, age = 9, index = -1;
+  ACCENTS.forEach(([time, strength], i) => {
+    if (time <= t && t - time < age) { age = t - time; value = strength; index = i; }
+  });
+  const barAge = ((t - OFFSET) % BAR + BAR) % BAR;
+  return {
+    hit: value * Math.exp(-age * 7),
+    age, index,
+    pulse: t > OFFSET ? .25 * Math.exp(-barAge * 9) : 0
+  };
 }
 
 // ===== Главный рендер кадра =====
@@ -255,96 +286,80 @@ function render(t = 0) {
   t = Number.isFinite(t) ? t : 0;
   const motion = fx && started;
 
-  // --- кадр ---
+  // --- кадр и переход ---
   const si = at(SHOTS, t);
   const shot = SHOTS[si];
   const has = tag => shot.tags.includes(tag);
-  const black = has('black') && motion;
-  const framing = shot.framing || SHOTS[si - 1].framing;
   const age = t - shot.time;
-  const duration = (SHOTS[si + 1]?.time || SONG_END) - shot.time;
-  const u = clamp(age / duration);
+  const current = shotView(si, t, motion);
+  const accent = motion ? accentAt(t) : {hit: 0, age: 9, index: 0, pulse: 0};
+  const hit = accent.hit;
 
-  // Приближение: на вертикальном экране режем меньше, картинка и так обрезана.
-  const portrait = width < height;
-  let zoom = 1 + (framing[3] - 1) * (portrait ? .45 : 1);
-  if (motion) zoom *= 1 + (has('push') ? .14 : .05) * easeOut(u);
-  // Какой кусок картинки видно: точка фокуса по центру, но не вылезаем за края.
-  const pixel = Math.max(viewW / IMAGE_W, viewH / IMAGE_H) * zoom;
-  const cropW = viewW / pixel, cropH = viewH / pixel;
-  const crop = {
-    x: clamp(framing[1] / 100 * IMAGE_W - cropW / 2, 0, IMAGE_W - cropW),
-    y: clamp(framing[2] / 100 * IMAGE_H - cropH / 2, 0, IMAGE_H - cropH),
-    w: cropW, h: cropH
-  };
-
-  // --- удар по доле ---
-  const beatPos = (t - OFFSET) / BEAT;
-  const beatIndex = Math.floor(beatPos);
-  const beatAge = (beatPos - beatIndex) * BEAT;
-  let hit = motion ? beatStrength(beatIndex) * Math.exp(-beatAge * 13) : 0;
-  // На уровне 3 добиваем ещё и полудоли.
-  if (motion && LEVELS[Math.floor(beatIndex / 4)] === 3 && beatAge > BEAT / 2) hit += .45 * Math.exp(-(beatAge - BEAT / 2) * 16);
-
-  const angle = hash(beatIndex) * Math.PI * 2;
-  const wobble = Math.cos(beatAge * 55);
-  let shakeX = Math.cos(angle) * 18 * hit * wobble;
-  let shakeY = Math.sin(angle) * 12 * hit * wobble;
-  const rotate = (hash(beatIndex + 7) - .5) * 3 * hit;
-  let scale = 1 + .07 * hit;
-  let blur = 0;
-
-  // --- вход в кадр ---
+  let smear = 0, alpha = 1;
   if (motion && has('whip')) {
-    const k = 1 - easeOut(age / .14);
+    // Рывок: картинка влетает сбоку со смазом.
+    const k = 1 - easeOutExpo(age / .35);
     const dir = hash(si) > .5 ? 1 : -1;
-    shakeX += dir * 90 * k; scale *= 1 + .15 * k; blur = 14 * k;
+    current.x = clamp(current.x + dir * current.w * .18 * k, 0, IMAGE_W - current.w);
+    smear = 40 * k;
   }
-  if (motion && has('zoom')) scale *= 1 + .35 * (1 - easeOut(age / .16));
-  el.shake.style.transform = `translate3d(${shakeX}px,${shakeY}px,0) rotate(${rotate}deg) scale(${scale})`;
+  if (motion && has('dissolve')) alpha = easeInOut(age / .45);
 
-  // --- RGB-сдвиг: красный и голубой каналы разъезжаются на ударе ---
-  const split = motion ? 1.5 + 14 * hit + blur : 0;
-  if (black) { view.fillStyle = '#000'; view.fillRect(0, 0, viewW, viewH); }
-  else drawShot(images[framing[0]], crop, split, blur, has('flip'));
-  const look = motion ? (shot.tags.map(tag => LOOKS[tag]).find(Boolean) || '') : '';
-  el.camera.style.filter = look || 'none';
+  view.fillStyle = '#000';
+  view.fillRect(0, 0, viewW, viewH);
+  // Во время растворения под новым кадром дорисовываем конец предыдущего.
+  if (alpha < 1 && si > 0) drawShot(shotView(si - 1, t, motion), 0, 0, 1);
+  const split = motion ? 1 + 12 * hit + smear * .3 : 0;
+  drawShot(current, split, smear, alpha);
+  const look = shot.tags.map(tag => LOOKS[tag]).find(Boolean);
+  el.camera.style.filter = motion && look ? look : 'none';
 
-  // --- вспышка и финальное затемнение ---
+  // --- толчок камеры на акценте: одно затухающее колебание, без постоянной тряски ---
+  const dirAngle = hash(accent.index + 1) * Math.PI * 2;
+  const swing = Math.sin(accent.age * 34) * hit;
+  const shakeX = Math.cos(dirAngle) * 9 * swing;
+  const shakeY = Math.sin(dirAngle) * 6 * swing;
+  const scale = 1 + .045 * hit + .008 * accent.pulse;
+  el.shake.style.transform = `translate3d(${shakeX}px,${shakeY}px,0) scale(${scale})`;
+
+  // --- свет: вспышка на входе, мягкое появление из чёрного, затемнение в конце ---
   let flash = 0;
-  if (motion && has('flash')) flash = .85 * Math.exp(-age * 16);
-  if (motion && beatIndex % 4 === 0) flash = Math.max(flash, .18 * hit);
+  if (motion && has('flash')) flash = .5 * Math.exp(-age * 10);
   el.flash.style.opacity = flash;
-  el.shutter.style.opacity = clamp((t - 31) / .2);
+  let shutter = clamp((t - 30.3) / .85);
+  if (motion && has('fade')) shutter = Math.max(shutter, 1 - easeOut(age / 1.2));
+  el.shutter.style.opacity = shutter;
 
   // --- текст ---
   const li = at(LINES, t);
   if (li !== lineIndex) setLine(li);
-  const remaining = (LINES[li + 1]?.time || SONG_END) - t;
+  const line = LINES[li];
+  const lineEnd = LINES[li + 1]?.time || SONG_END;
   words.forEach((word, n) => {
-    if (!motion) { word.el.style.opacity = 1; word.el.style.transform = 'none'; return; }
-    const a = t - word.time;
-    const enter = easeOut(a / .13);
-    let opacity = a < 0 ? 0 : clamp(a / .03);
-    let x = 0;
-    // Перед следующей строкой — глитч и исчезновение.
-    if (remaining < .1) {
-      const k = 1 - remaining / .1;
-      x = (hash(n + beatIndex) - .5) * 60 * k;
-      opacity *= 1 - k;
-    }
-    word.el.style.opacity = opacity;
-    // Пока слово не появилось, держим обычный размер, чтобы оно не распирало строку.
-    word.el.style.transform = `translate3d(${x}px,0,0) scale(${a < 0 ? 1 : 1.9 - .9 * enter})`;
+    if (!motion) { word.el.style.opacity = 1; word.el.style.transform = 'none'; word.inner.style.transform = 'none'; return; }
+    // Слово начинает выезжать чуть раньше, чем звучит, — так глаз воспринимает его «в такт».
+    const a = t - (word.time - .06);
+    const enter = easeOutExpo(a / .55);
+    // Уход: слова по очереди уезжают вверх под маску.
+    // Если последнее слово прозвучало совсем недавно, уход не играем — его не успеют прочитать.
+    const leaveTime = lineEnd - line.words[line.words.length - 1] > .8 ? .26 : 0;
+    const leave = leaveTime ? easeInOut((t - (lineEnd - .32 + n * .035)) / leaveTime) : 0;
+    const y = (1 - enter) * 110 - leave * 110;
+    word.el.style.opacity = a < 0 ? 0 : 1;
+    word.inner.style.transform = `translate3d(0,${y}%,0) skewX(${(1 - enter) * -8}deg)`;
+    // Главное слово ещё и «вдыхает»: короткий рост и возврат.
+    const pop = word.key && a >= 0 ? .14 * Math.exp(-a * 6) * Math.sin(Math.min(a * 9, Math.PI)) : 0;
+    word.el.style.transform = pop ? `scale(${1 + pop})` : 'none';
   });
-  const tilt = motion ? (hash(li + 3) - .5) * 6 : 0;
-  const textSplit = motion ? 2 + 7 * hit : 0;
-  el.lyrics.style.transform = `translate3d(${shakeX * .4}px,${shakeY * .4}px,0) rotate(${tilt}deg)`;
-  el.lyrics.style.textShadow = motion
-    ? `${textSplit}px 0 rgba(255,40,110,.75), ${-textSplit}px 0 rgba(40,220,255,.75), 0 3px 0 #08081466`
+  // Вся строка медленно плывёт, пока держится нота.
+  const drift = motion ? easeInOut((t - line.time) / (lineEnd - line.time)) : 0;
+  el.lyrics.style.transform = `translate3d(${shakeX * .35}px,${shakeY * .35 - drift * 10}px,0) scale(${1 + drift * .035})`;
+  const textSplit = 6 * hit;
+  el.lyrics.style.textShadow = motion && textSplit > .3
+    ? `${textSplit}px 0 rgba(255,40,110,.7), ${-textSplit}px 0 rgba(40,220,255,.7)`
     : '';
 
-  atmosphere(t, framing[0] === 'summer');
+  atmosphere(t, shot.framing[0] === 'summer');
   el.clock.textContent = format(t);
   el.seek.value = t;
   el.seek.style.setProperty('--progress', `${clamp(t / (audio.duration || SONG_END)) * 100}%`);

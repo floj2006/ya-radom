@@ -35,7 +35,7 @@ const server=http.createServer((req,res)=>{
       await page.locator('#seek').evaluate((el,t)=>{el.value=t;el.dispatchEvent(new Event('input'));},t);
       await page.waitForFunction(t=>Math.abs(document.querySelector('audio').currentTime-t)<.03,t);
     }
-    for(const [t,label] of [[4.6,'Я БУДУ РЯДОМ.'],[24,'ПОТОРОПИЛИСЬ БРОСИВ ВСЁ'],[2.4,'ПРОТИВ НАС.']]){
+    for(const [t,label] of [[5.2,'Я БУДУ РЯДОМ.'],[24.5,'ПОТОРОПИЛИСЬ, БРОСИВ ВСЁ'],[3.0,'ПРОТИВ НАС.']]){
       await seek(t);assert.equal(await page.locator('#lyrics').getAttribute('aria-label'),label);
     }
     const state=()=>page.evaluate(()=>({camera:document.querySelector('#shake').style.transform+document.querySelector('#camera').toDataURL().length,words:[...document.querySelectorAll('.word')].map(e=>e.style.cssText)}));
@@ -43,7 +43,7 @@ const server=http.createServer((req,res)=>{
     await page.waitForTimeout(160);assert.deepEqual(await state(),first,'pause freezes animation');
     for(const w of [320,390,1440]){
       await page.setViewportSize({width:w,height:w===1440?900:844});
-      for(const t of [.7,2.4,4.6,8.6,10.6,12.8,16.3,18.2,20.1,24,27.8,29.8]){
+      for(const t of [1.5,3.2,7,9.9,11.8,15,17.9,19.6,22.5,27.5,28.8,30.2]){
         await seek(t);
         assert.equal(await page.locator('.lyric-row').evaluateAll(rows=>rows.every(r=>r.scrollWidth<=r.clientWidth+1)),true,`text overflow at ${w}px / ${t}s`);
       }

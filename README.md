@@ -8,17 +8,15 @@ Serve the repository root, for example `python -m http.server 8080`, then open `
 
 ## Edit direction
 
-Aggressive AMV-style edit built from three original illustrations: 66 cuts on a measured beat grid (123 BPM, first beat at 0.025 s), 19 framings of the three images, mirrored shots, mono/red/invert looks, black strobe frames, zoom and whip entrances, per-beat camera punch and shake, RGB channel split and white flashes. Lyrics slam in word by word.
+Motion-designed lyric edit built from three original illustrations. Every lyric word appears at the moment it is sung: word timings were taken from the isolated vocal (Spleeter 2-stem separation + Russian speech recognition with token timestamps), then checked against a frame-by-frame render. Cuts land on words (28 shots), the camera moves with slow eased push/pull/pan, and impacts (camera nudge, RGB split, flash) are reserved for key words: НАС, РЯДОМ, ГЛАЗ, ЯДА, НЕТУ, ВСЁ.
 
 `edit.js` is the timeline:
-- `LEVELS` — intensity of each bar (1 calm … 3 maximum).
+- `LINES` — lyric rows and the start time of each word (`words`).
+- `ACCENTS` — `[time, strength]` impacts.
 - `FRAMINGS` — image + focus point + zoom.
-- `SHOTS` — `[beat, framing, tags]`; beats can be fractional (`.5` = off-beat).
-- `LINES` — lyric lines; line start times are kept from the previous version and were not re-checked by ear.
+- `SHOTS` — `[seconds, framing, tags]`: entrance (`fade`, `dissolve`, `whip`, `flash`), move (`push`, `pull`, `left`, `right`), look (`mono`, `red`, `dream`).
 
-The camera is drawn on a `<canvas>`; red/cyan channel copies are prepared once per image so the RGB split costs two `drawImage` calls per frame. All animation is a pure sample of `audio.currentTime`: paused seeks, replay and backward seeks reconstruct the exact frame.
-
-The edit contains flashes and inverted frames; the FX toggle and the reduced-motion preference turn them off.
+Words are revealed from a mask (`.word` clips, `.word-inner` slides). The camera is drawn on a `<canvas>`; red/cyan channel copies are prepared once per image so the RGB split costs two `drawImage` calls. All animation is a pure sample of `audio.currentTime`: paused seeks, replay and backward seeks reconstruct the exact frame. FX toggle and reduced-motion turn camera motion, flashes and reveals off.
 
 ## Controls / mobile
 
