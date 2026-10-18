@@ -38,7 +38,7 @@ const server=http.createServer((req,res)=>{
     for(const [t,label] of [[4.6,'Я БУДУ РЯДОМ.'],[24,'ПОТОРОПИЛИСЬ БРОСИВ ВСЁ'],[2.4,'ПРОТИВ НАС.']]){
       await seek(t);assert.equal(await page.locator('#lyrics').getAttribute('aria-label'),label);
     }
-    const state=()=>page.evaluate(()=>({camera:document.querySelector('#camera').style.transform,words:[...document.querySelectorAll('.word')].map(e=>e.style.cssText)}));
+    const state=()=>page.evaluate(()=>({camera:document.querySelector('#shake').style.transform+document.querySelector('#camera').toDataURL().length,words:[...document.querySelectorAll('.word')].map(e=>e.style.cssText)}));
     await seek(4.12);const first=await state();await seek(17);await seek(4.12);assert.deepEqual(await state(),first,'seeking reconstructs animation');
     await page.waitForTimeout(160);assert.deepEqual(await state(),first,'pause freezes animation');
     for(const w of [320,390,1440]){

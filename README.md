@@ -8,9 +8,17 @@ Serve the repository root, for example `python -m http.server 8080`, then open `
 
 ## Edit direction
 
-Three original illustrated scenes, 19 camera shots and 12 typography cues form a short narrative: rainy separation → summer promise → fragments of memory → silence. This is an animated illustration edit, not sourced anime video footage. Typography uses short phrase compositions, outline contrast and directional arrivals. Only selected music accents trigger a short push, echo and low-opacity flash; quiet passages are allowed to breathe.
+Aggressive AMV-style edit built from three original illustrations: 66 cuts on a measured beat grid (123 BPM, first beat at 0.025 s), 19 framings of the three images, mirrored shots, mono/red/invert looks, black strobe frames, zoom and whip entrances, per-beat camera punch and shake, RGB channel split and white flashes. Lyrics slam in word by word.
 
-`edit.js` contains `cues`, `shots` and `beats`. Existing lyric timings and onset markers are retained; two long phrases have additional editorial splits. Adjust these arrays if the vocal phrasing needs finer alignment. All animation is a pure sample of `audio.currentTime`: paused seeks, replay and backward seeks reconstruct the exact frame without queued animations.
+`edit.js` is the timeline:
+- `LEVELS` — intensity of each bar (1 calm … 3 maximum).
+- `FRAMINGS` — image + focus point + zoom.
+- `SHOTS` — `[beat, framing, tags]`; beats can be fractional (`.5` = off-beat).
+- `LINES` — lyric lines; line start times are kept from the previous version and were not re-checked by ear.
+
+The camera is drawn on a `<canvas>`; red/cyan channel copies are prepared once per image so the RGB split costs two `drawImage` calls per frame. All animation is a pure sample of `audio.currentTime`: paused seeks, replay and backward seeks reconstruct the exact frame.
+
+The edit contains flashes and inverted frames; the FX toggle and the reduced-motion preference turn them off.
 
 ## Controls / mobile
 
